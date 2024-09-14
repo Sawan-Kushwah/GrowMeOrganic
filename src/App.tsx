@@ -5,7 +5,7 @@ import './App.css';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from 'primereact/button';
-import { DataTable, DataTableSelectionChangeEvent } from 'primereact/datatable';
+import { DataTable, DataTableProps } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { InputText } from 'primereact/inputtext';
@@ -85,6 +85,10 @@ function App() {
     setValue(remainingRowsToSelect === 0 ? '' : remainingRowsToSelect.toString());
   };
 
+  const handleSelectionChange: DataTableProps<Artwork[]>['onSelectionChange'] = (e) => {
+    setSelectedArtwork(e.value || []);
+  };
+
   const setData = async (page: number): Promise<void> => {
     setLoading(true);
     try {
@@ -114,7 +118,7 @@ function App() {
         <DataTable
           value={artwork}
           selection={selectedArtwork}
-          onSelectionChange={(e: DataTableSelectionChangeEvent<Artwork[]>) => setSelectedArtwork(e.value || [])}
+          onSelectionChange={handleSelectionChange}
           paginator
           rows={rowsPerPage}
           loading={loading}
