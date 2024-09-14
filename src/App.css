@@ -1,0 +1,14 @@
+.p-paginator-left-content {
+  margin-right: 10px !important;
+}
+
+.p-paginator-right-content {
+  margin-left: 10px !important;
+}
+
+.flex-row-reverse {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  background-color: red;
+}
