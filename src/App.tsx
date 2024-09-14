@@ -3,9 +3,9 @@ import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import './App.css';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Button } from 'primereact/button';
-import { DataTable, DataTableProps } from 'primereact/datatable';
+import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { InputText } from 'primereact/inputtext';
@@ -38,7 +38,7 @@ function App() {
       icon="pi pi-chevron-left"
       text
       onClick={() =>
-        setCurrentPageNumber(currentPageNumber === 1 ? currentPageNumber : currentPageNumber - 1)
+        setCurrentPageNumber((prev) => Math.max(1, prev - 1))
       }
     />
   );
@@ -50,30 +50,25 @@ function App() {
       icon="pi pi-chevron-right"
       text
       onClick={() =>
-        setCurrentPageNumber(
-          currentPageNumber === Math.ceil(totalRecords / rowsPerPage)
-            ? currentPageNumber
-            : currentPageNumber + 1
-        )
+        setCurrentPageNumber((prev) => Math.min(prev + 1, Math.ceil(totalRecords / rowsPerPage)))
       }
     />
   );
 
-  // Memoize the value of numberOfRowsToSelect based on input value and currentPageNumber
   const numberOfRowsToSelect = useMemo((): number => {
     const parsedValue = parseInt(value, 10);
     return isNaN(parsedValue) || parsedValue <= 0 ? 0 : parsedValue;
   }, [value]);
 
-  const selectRows = (): void => {
+  const selectRows = useCallback((): void => {
     if (numberOfRowsToSelect <= 0) return;
 
     let remainingRowsToSelect = numberOfRowsToSelect;
     const newSelectedArtwork = [...selectedArtwork];
 
-    artwork.forEach((cus) => {
-      if (remainingRowsToSelect > 0 && !newSelectedArtwork.some((selected) => selected.id === cus.id)) {
-        newSelectedArtwork.push(cus);
+    artwork.forEach((art) => {
+      if (remainingRowsToSelect > 0 && !newSelectedArtwork.some((selected) => selected.id === art.id)) {
+        newSelectedArtwork.push(art);
         remainingRowsToSelect--;
       }
     });
@@ -83,10 +78,10 @@ function App() {
       op.current.hide();
     }
     setValue(remainingRowsToSelect === 0 ? '' : remainingRowsToSelect.toString());
-  };
+  }, [numberOfRowsToSelect, selectedArtwork, artwork]);
 
-  const handleSelectionChange: DataTableProps<Artwork[]>['onSelectionChange'] = (e) => {
-    setSelectedArtwork(e.value || []);
+  const handleSelectionChange = (e: { value: Artwork[] }): void => {
+    setSelectedArtwork(e.value);
   };
 
   const setData = async (page: number): Promise<void> => {
@@ -117,6 +112,7 @@ function App() {
       <div className="card">
         <DataTable
           value={artwork}
+          selectionMode="multiple" // Move selectionMode to DataTable
           selection={selectedArtwork}
           onSelectionChange={handleSelectionChange}
           paginator
@@ -129,7 +125,7 @@ function App() {
           paginatorRight={paginatorRight}
         >
           <Column
-            selectionMode="multiple"
+            selectionMode="multiple" // Keep the selection mode here for the checkboxes
             header={
               <>
                 <Button
